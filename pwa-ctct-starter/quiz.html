@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Làm bài kiểm tra - CTCT</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js');
+      });
+    }
+  </script>
+</head>
+<body>
+  <nav class="topbar">
+    <a href="index.html" class="back">← Trang chủ</a>
+    <h2>LÀM BÀI KIỂM TRA</h2>
+  </nav>
+
+  <main class="container">
+    <section class="card">
+      <div class="grid-2">
+        <label>Họ và tên
+          <input id="fullname" placeholder="Nhập họ và tên">
+        </label>
+        <label>Đơn vị
+          <input id="unit" placeholder="Nhập đơn vị">
+        </label>
+      </div>
+      <div class="grid-2">
+        <div>Thời gian: <strong><span id="time">--:--</span></strong></div>
+        <div>Tiến độ: <strong><span id="progress">0/0</span></strong></div>
+      </div>
+    </section>
+
+    <section class="card" id="quizBox" hidden>
+      <h3 id="qTitle">Câu ?</h3>
+      <p id="qText"></p>
+
+      <form id="options" class="options"></form>
+      
+      <div class="actions spaced">
+        <button class="btn" id="prevBtn" type="button">← Trước</button>
+        <button class="btn" id="nextBtn" type="button">Tiếp →</button>
+        <button class="btn primary" id="submitBtn" type="button">Nộp bài</button>
+      </div>
+    </section>
+
+    <section class="card" id="startCard">
+      <p>Sẵn sàng bắt đầu? Bài kiểm tra gồm <strong>30 câu</strong>, thời gian <strong>30 phút</strong>.</p>
+      <button class="btn primary" id="startBtn">BẮT ĐẦU</button>
+    </section>
+
+    <section class="card success" id="resultCard" hidden>
+      <h3>KẾT QUẢ</h3>
+      <p id="resultText"></p>
+      <p id="classification"></p>
+      <div class="actions">
+        <a class="btn" href="quiz.html">Làm lại</a>
+        <a class="btn" href="index.html">Về trang chủ</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

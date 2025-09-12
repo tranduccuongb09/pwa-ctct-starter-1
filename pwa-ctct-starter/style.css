@@ -1,0 +1,22 @@
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#f6f7fb;color:#111}
+.hero{background:#8B0000;color:#fff;padding:16px}
+.brand{display:flex;gap:16px;align-items:center}
+.logo{width:56px;height:56px;border-radius:12px}
+.subtitle{opacity:.9;margin:.2rem 0 0}
+.container{max-width:920px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:14px;padding:16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.card.success{border:2px solid #2e7d32}
+.topbar{position:sticky;top:0;background:#8B0000;color:#fff;padding:12px 16px;display:flex;gap:16px;align-items:center}
+.topbar .back{color:#fff;text-decoration:none}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+.actions.spaced{justify-content:space-between}
+.btn{padding:12px 16px;border-radius:12px;border:1px solid #ccc;background:#fff;text-decoration:none;cursor:pointer}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:#8B0000;color:#fff;border-color:#8B0000}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+input[type=text], input{width:100%;padding:10px;border:1px solid #ccc;border-radius:10px}
+.options{display:grid;gap:10px;margin:12px 0}
+.options label{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid #ddd;border-radius:10px;background:#fafafa}
+.footer{padding:24px;text-align:center;color:#555}
+.pdf-wrapper{height:70vh}
+.pdf{width:100%;height:100%;border-radius:12px;border:1px solid #ddd}
