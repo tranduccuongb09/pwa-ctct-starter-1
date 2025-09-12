@@ -1,7 +1,7 @@
 // ======= CẤU HÌNH =======
 const TOTAL_QUESTIONS = 30;
 const DURATION_MINUTES = 30; // 30 phút
-const SHEET_ENDPOINT = 'YOUR_APPS_SCRIPT_URL_HERE'; // Thay bằng URL Web App Apps Script
+const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzFn_0TUsjk24Ow9VcTwWLjAMzt_5x4ajFQs6APaTC4HgT7yJWdL4HHFyHPjugjf_SibQ/exec'; // Thay bằng URL Web App Apps Script
 
 // ======= TRẠNG THÁI =======
 let questions = [];
