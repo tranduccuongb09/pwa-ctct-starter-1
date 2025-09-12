@@ -1,7 +1,7 @@
 // ======= CẤU HÌNH =======
 const TOTAL_QUESTIONS = 30;
 const DURATION_MINUTES = 30; // 30 phút
-const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbye5VmBGdZLHtAs9y8ni3IhacjgoZmEK-gfeVRcVknJkLksiZSGVdzMW6V2TXCN1H9Q1Q/exec'; // Thay bằng URL Web App Apps Script
+const SHEET_ENDPOINT = 'https://script.google.com/macros/s/AKfycbye5VmBGdZLHtAs9y8ni3IhacjgoZmEK-gfeVRcVknJkLksiZSGVdzMW6V2TXCN1H9Q1Q/exec'; // URL Web App Apps Script
 
 // ======= TRẠNG THÁI =======
 let questions = [];
@@ -66,7 +66,6 @@ function classify(score, total){
 
 // ======= SỰ KIỆN =======
 window.addEventListener('DOMContentLoaded', async () => {
-  // Nút bắt đầu
   const startBtn = document.getElementById('startBtn');
   const startCard = document.getElementById('startCard');
   const quizBox  = document.getElementById('quizBox');
@@ -122,22 +121,48 @@ window.addEventListener('DOMContentLoaded', async () => {
     const name = document.getElementById('fullname').value.trim();
     const unit = document.getElementById('unit').value.trim();
 
-    // Hiển thị
+// TẠO CHI TIẾT TỪNG CÂU
+const details = questions.map((q, idx) => {
+  const chosen = selections[idx] || null;   // 'A'|'B'|'C'|'D'|null
+  const correct = q.answer;                 // đáp án đúng
+  return {
+    index: idx + 1,
+    question: q.question,
+    chosen,
+    correct,
+    isCorrect: chosen === correct
+  };
+});
+
+// GỬI LÊN SHEET
+await fetch(SHEET_ENDPOINT, {
+  method: 'POST',
+  mode: 'no-cors',
+  headers: {'Content-Type':'application/json'},
+  body: JSON.stringify({
+    name, unit, score, total,
+    details,                                  // <— phải có dòng này
+    timestamp: new Date().toISOString()
+  })
+});
+
+    // Hiển thị kết quả
     const resultText = document.getElementById('resultText');
     resultText.textContent = `${name} - ${unit}: ${score}/${total} điểm`;
     document.getElementById('classification').textContent = 'Xếp loại: ' + classify(score, total);
     quizBox.hidden = true;
     resultCard.hidden = false;
 
-    // Gửi Google Sheet (Apps Script)
+    // Gửi Google Sheet (Apps Script) - tổng hợp + chi tiết
     if (SHEET_ENDPOINT && SHEET_ENDPOINT.startsWith('https')) {
       try {
         await fetch(SHEET_ENDPOINT, {
           method: 'POST',
-          mode: 'no-cors', // đơn giản cho demo
+          mode: 'no-cors', // để đơn giản
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({
             name, unit, score, total,
+            details, // <— mảng chi tiết từng câu
             timestamp: new Date().toISOString()
           })
         });
