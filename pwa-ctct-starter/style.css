@@ -20,3 +20,76 @@ input[type=text], input{width:100%;padding:10px;border:1px solid #ccc;border-rad
 .footer{padding:24px;text-align:center;color:#555}
 .pdf-wrapper{height:70vh}
 .pdf{width:100%;height:100%;border-radius:12px;border:1px solid #ddd}
+.question-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin: 20px auto;
+  max-width: 700px;
+}
+
+.question-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.question-text {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.options-list label {
+  display: block;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.options-list input[type="radio"] {
+  margin-right: 10px;
+}
+
+.options-list label:hover {
+  background: #f1f1f1;
+  border-color: #bbb;
+}
+
+.quiz-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.btn-primary {
+  background: #a00;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: #eee;
+  color: #333;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #800;
+}
+
+.btn-secondary:hover {
+  background: #ddd;
+}

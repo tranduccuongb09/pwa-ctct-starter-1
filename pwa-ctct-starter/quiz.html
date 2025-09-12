@@ -13,6 +13,23 @@
       });
     }
   </script>
+  <style>
+    /* Bổ sung vài style để giống giao diện mẫu */
+    .question-card {background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,.1); margin:20px auto; max-width:760px}
+    .question-title {font-size:22px; font-weight:700; margin:0 0 8px}
+    .question-text {font-size:18px; margin:0 0 16px}
+    .options-list label{display:block; background:#f9f9f9; border:1px solid #ddd; border-radius:12px; padding:14px 12px; margin-bottom:12px; cursor:pointer; transition:.2s}
+    .options-list input[type=radio]{margin-right:10px; transform:scale(1.1); vertical-align:middle}
+    .options-list label:hover{background:#f1f1f1; border-color:#bbb}
+    .quiz-actions{display:flex; gap:12px; justify-content:space-between; margin-top:18px}
+    .btn-primary{background:#a00; color:#fff}
+    .btn-secondary{background:#eee; color:#333}
+    .btn-primary,.btn-secondary{padding:10px 20px; border-radius:10px; font-size:16px; border:none; cursor:pointer}
+    .btn-primary:hover{background:#800}
+    .btn-secondary:hover{background:#ddd}
+    /* Giữ style hiện có */
+    .card{max-width:900px; margin:14px auto}
+  </style>
 </head>
 <body>
   <nav class="topbar">
@@ -21,6 +38,7 @@
   </nav>
 
   <main class="container">
+    <!-- Thông tin thí sinh -->
     <section class="card">
       <div class="grid-2">
         <label>Họ và tên
@@ -29,6 +47,9 @@
         <label>Đơn vị
           <input id="unit" placeholder="Nhập đơn vị">
         </label>
+        <label>Chức vụ
+          <input id="position" placeholder="Nhập chức vụ (VD: Trung đội trưởng)">
+        </label>
       </div>
       <div class="grid-2">
         <div>Thời gian: <strong><span id="time">--:--</span></strong></div>
@@ -36,35 +57,41 @@
       </div>
     </section>
 
-    <section class="card" id="quizBox" hidden>
-      <h3 id="qTitle">Câu ?</h3>
-      <p id="qText"></p>
+    <!-- Khối làm bài (ẩn tới khi BẮT ĐẦU) -->
+    <section class="question-card" id="quizBox" hidden>
+      <h2 id="qTitle" class="question-title">Câu 1</h2>
+      <p id="qText" class="question-text"></p>
 
-      <form id="options" class="options"></form>
-      
-      <div class="actions spaced">
-        <button class="btn" id="prevBtn" type="button">← Trước</button>
-        <button class="btn" id="nextBtn" type="button">Tiếp →</button>
-        <button class="btn primary" id="submitBtn" type="button">Nộp bài</button>
+      <!-- JS render các đáp án vào đây -->
+      <form id="options" class="options-list"></form>
+
+      <div class="quiz-actions">
+        <button class="btn-secondary" id="prevBtn" type="button">← Trước</button>
+        <div style="flex:1"></div>
+        <button class="btn-secondary" id="nextBtn" type="button">Tiếp →</button>
+        <button class="btn-primary" id="submitBtn" type="button">Nộp bài</button>
       </div>
     </section>
 
+    <!-- Khối bắt đầu -->
     <section class="card" id="startCard">
       <p>Sẵn sàng bắt đầu? Bài kiểm tra gồm <strong>30 câu</strong>, thời gian <strong>30 phút</strong>.</p>
-      <button class="btn primary" id="startBtn">BẮT ĐẦU</button>
+      <button class="btn primary btn-primary" id="startBtn">BẮT ĐẦU</button>
     </section>
 
+    <!-- Kết quả -->
     <section class="card success" id="resultCard" hidden>
       <h3>KẾT QUẢ</h3>
       <p id="resultText"></p>
       <p id="classification"></p>
       <div class="actions">
-        <a class="btn" href="quiz.html">Làm lại</a>
-        <a class="btn" href="index.html">Về trang chủ</a>
+        <a class="btn-secondary" href="quiz.html">Làm lại</a>
+        <a class="btn-secondary" href="index.html">Về trang chủ</a>
       </div>
     </section>
   </main>
 
-  <script src="app.js?v=7"></script>
+  <!-- tăng version nếu cần để tránh cache -->
+  <script src="app.js?v=10"></script>
 </body>
 </html>

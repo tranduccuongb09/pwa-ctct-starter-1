@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ctct-cache-v7';
+const CACHE_NAME = 'ctct-cache-v10';
 const ASSETS = [
   './',
   './index.html',
