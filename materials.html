@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tài liệu học tập – CTĐ, CTCT</title>
+  <style>
+    :root{--brand:#a00000;--bg:#f5f6f8;--card:#fff;--text:#111827;--muted:#6b7280}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .topbar{display:flex;gap:12px;align-items:center;background:var(--brand);color:#fff;padding:14px 16px}
+    .topbar a{color:#fff;text-decoration:none}
+    .container{max-width:980px;margin:16px auto;padding:0 12px}
+    .doc{background:var(--card);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);padding:12px;margin-bottom:16px}
+    .doc h3{margin:6px 8px}
+    iframe{width:100%;height:560px;border:0;border-radius:10px;background:#000}
+    .muted{color:var(--muted);font-size:14px;margin:0 8px 12px}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="index.html">← Trang chủ</a>
+    <h2 style="margin:0;font-size:18px">TÀI LIỆU HỌC TẬP</h2>
+  </div>
+
+  <main class="container" id="list"></main>
+
+  <script>
+    // Đọc MATERIALS đã cấu hình trong app.js
+    const fallback = window.MATERIALS || [
+      // Ví dụ:
+      // { title: 'Giáo trình CTĐ, CTCT - Chương 1', url: 'https://drive.google.com/file/d/ID/preview' },
+    ];
+    const root = document.getElementById('list');
+    if (fallback.length === 0) {
+      root.innerHTML = '<p class="muted">Chưa cấu hình tài liệu. Hãy thêm các URL nhúng Google Drive vào biến MATERIALS trong <b>app.js</b>.</p>';
+    } else {
+      root.innerHTML = fallback.map(d => `
+        <section class="doc">
+          <h3>${d.title}</h3>
+          <p class="muted">Nếu không hiện, mở trực tiếp: <a href="${d.url}" target="_blank" rel="noopener">Link PDF</a></p>
+          <iframe allow="fullscreen" src="${d.url}"></iframe>
+        </section>
+      `).join('');
+    }
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

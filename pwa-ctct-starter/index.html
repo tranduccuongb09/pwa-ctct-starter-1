@@ -3,156 +3,56 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kiểm tra CTĐ, CTCT - Đơn vị</title>
-  <meta name="theme-color" content="#8B0000"/>
+  <title>CTĐ, CTCT – Trang chủ</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css">
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js');
-      });
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
     }
   </script>
-
-  <!-- ====== CTCT ADAPTER: NẠP CÂU HỎI TỪ GOOGLE SHEETS (CSV) ====== -->
-  <script>
-  /** ========== CẤU HÌNH ========== **/
-  // 1) Dùng Sheet mẫu (chạy offline luôn): data: URL CSV (có 6 câu ví dụ)
-  const SAMPLE_CSV_DATA_URL =
-    "data:text/csv;charset=utf-8," + encodeURIComponent(
-`Câu hỏi,Đáp án A,Đáp án B,Đáp án C,Đáp án D,Đáp án đúng
-"Chức năng cơ bản của CTĐ, CTCT trong QĐNDVN là gì?","Giáo dục chính trị, tư tưởng","Công tác dân vận","Huấn luyện kỹ thuật","Hậu cần - kỹ thuật","A"
-"Nguyên tắc tổ chức cơ bản của QĐNDVN là gì?","Tập trung dân chủ","Tam quyền phân lập","Tập quyền tuyệt đối","Phân tán tự trị","A"
-"Yêu cầu về kỷ luật của quân đội?","Kỷ luật nghiêm minh","Khoan dung, linh hoạt","Tự do, sáng tạo","Tuỳ nghi, linh hoạt","A"
-"Nền tảng tư tưởng, kim chỉ nam của ĐCSVN là?","Chủ nghĩa Mác - Lênin, Tư tưởng Hồ Chí Minh","Tư tưởng Khổng - Mạnh","Chủ nghĩa tự do","Chủ nghĩa dân túy","A"
-"Đối tượng giáo dục CTĐ, CTCT chủ yếu trong đơn vị là?","Cán bộ, chiến sĩ trong đơn vị","Nhân dân địa phương","Doanh nghiệp trên địa bàn","Học sinh phổ thông","A"
-"Nguyên tắc công tác tư tưởng là?","Tính đảng, tính khoa học, tính chiến đấu","Trung lập, mềm dẻo","Tự phát, linh hoạt","Chủ quan, cảm tính","A"
-`);
-
-  // 2) Khi có Google Sheets thật: THAY DÒNG DƯỚI BẰNG LINK CSV PUBLISH
-  window.CTCT_CONFIG = {
-    // Ví dụ định dạng đúng:
-    // questionCsvUrl: "https://docs.google.com/spreadsheets/d/e/<ID>/pub?output=csv"
-    questionCsvUrl: https://docs.google.com/spreadsheets/d/e/2PACX-1vRGrQSBc7O1CzyRKygMGWbiTL1trezBrvhdTRxSsr1LjMmT5gbHF0dhpLVig6FegtkBcXYtK13-8aWh/pub?output=csv
-  };
-
-  /** ========== ADAPTER: CSV → DANH SÁCH CÂU HỎI ========== **/
-  (function () {
-    function parseCSV(text){
-      const rows=[]; let cur=''; let inQ=false; let row=[];
-      for(let i=0;i<text.length;i++){
-        const ch=text[i], next=text[i+1];
-        if(ch==='\"'){ if(inQ && next==='\"'){cur+='\"'; i++;} else inQ=!inQ; }
-        else if(ch===',' && !inQ){ row.push(cur); cur=''; }
-        else if((ch==='\n'||ch==='\r') && !inQ){ if(cur!==''||row.length){row.push(cur); rows.push(row); row=[]; cur='';} }
-        else { cur+=ch; }
-      }
-      if(cur!==''||row.length){row.push(cur); rows.push(row);}
-      return rows.filter(r=>r.some(c=>c.trim()!==''));
-    }
-
-    function rowsToQuestions(rows){
-      const header = rows[0].map(h=>h.trim().toLowerCase());
-      const idx = {
-        q: header.findIndex(h=>/câu\s*hỏi|question/.test(h)),
-        a: header.findIndex(h=>/đáp\s*án\s*a\b|^a$/.test(h)),
-        b: header.findIndex(h=>/đáp\s*án\s*b\b|^b$/.test(h)),
-        c: header.findIndex(h=>/đáp\s*án\s*c\b|^c$/.test(h)),
-        d: header.findIndex(h=>/đáp\s*án\s*d\b|^d$/.test(h)),
-        correct: header.findIndex(h=>/đáp\s*án\s*đúng|correct|key/.test(h)),
-      };
-      const list=[];
-      for(let i=1;i<rows.length;i++){
-        const r=rows[i];
-        const q={
-          question: (r[idx.q]||'').trim(),
-          options: {
-            A: (r[idx.a]||'').trim(),
-            B: (r[idx.b]||'').trim(),
-            C: (r[idx.c]||'').trim(),
-            D: (r[idx.d]||'').trim(),
-          },
-          answer: ((r[idx.correct]||'').trim().toUpperCase().match(/[ABCD]/)||['A'])[0]
-        };
-        if(q.question) list.push(q);
-      }
-      return list;
-    }
-
-    async function loadQuestionsFromSheet(){
-      const url = window.CTCT_CONFIG?.questionCsvUrl;
-      if(!url) throw new Error("Thiếu CTCT_CONFIG.questionCsvUrl");
-      const res = await fetch(url, {cache:"no-store"});
-      if(!res.ok) throw new Error("Không tải được CSV từ Google Sheets");
-      const text = await res.text();
-      const rows = parseCSV(text);
-      return rowsToQuestions(rows);
-    }
-
-    // Xuất global để trang/bộ phận khác dùng
-    window.loadQuestionsFromSheet = loadQuestionsFromSheet;
-
-    // Tải sớm để dùng ngay (ví dụ cho quiz.html)
-    window.QUESTIONS_DATA_PROMISE = loadQuestionsFromSheet().then(list => {
-      window.QUESTIONS_DATA = list;
-      return list;
-    }).catch(err => {
-      console.error("[CTCT] Lỗi nạp câu hỏi:", err);
-      window.QUESTIONS_DATA = [];
-      return [];
-    });
-  })();
-  </script>
-  <!-- ====== /CTCT ADAPTER ====== -->
+  <style>
+    :root{--brand:#a00000;--brand-600:#800000;--bg:#f5f6f8;--card:#fff;--border:#e5e7eb;--text:#111827;--muted:#6b7280}
+    *{box-sizing:border-box} html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .topbar{display:flex;align-items:center;gap:12px;background:var(--brand);color:#fff;padding:14px 16px}
+    .topbar h1{margin:0;font-size:18px;font-weight:700}
+    .container{max-width:980px;margin:18px auto;padding:0 12px}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}} @media (max-width:600px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:18px}
+    .card h3{margin:0 0 6px} .card p{margin:0 0 14px;color:var(--muted)}
+    .btn{display:inline-block;padding:10px 16px;border-radius:10px;border:none;background:#eee;color:#333;text-decoration:none;font-weight:600}
+    .btn:hover{background:#ddd} .btn-primary{background:var(--brand);color:#fff} .btn-primary:hover{background:var(--brand-600)}
+    footer{margin:26px 0;color:var(--muted);font-size:13px;text-align:center}
+  </style>
 </head>
-
 <body>
-  <header class="hero">
-    <div class="brand">
-      <img src="icons/icon-192.png" alt="Logo" class="logo">
-      <div>
-        <h1>PHẦN MỀM HỌC TẬP & KIỂM TRA NHẬN THỨC CHÍNH TRỊ</h1>
-        <p class="subtitle">Đơn vị: <strong>BAN CHỈ HUY PTKV3-TÂN YÊN/BỘ CHQS TỈNH BẮC NINH</strong></p>
-      </div>
-    </div>
+  <header class="topbar">
+    <h1>APP KIỂM TRA NHẬN THỨC CHÍNH TRỊ</h1>
   </header>
 
   <main class="container">
-    <section class="card">
-      <h2>BẮT ĐẦU</h2>
-      <p>Chọn chức năng bên dưới:</p>
-      <div class="actions">
-        <a class="btn" href="study.html">📘 Học tập</a>
-        <a class="btn primary" href="quiz.html">📝 Làm bài kiểm tra</a>
-      </div>
-    </section>
+    <div class="grid">
+      <section class="card">
+        <h3>Làm bài kiểm tra</h3>
+        <p>30 câu – 30 phút. Hệ thống tự chấm điểm và ghi kết quả.</p>
+        <a class="btn btn-primary" href="quiz.html">Vào làm bài →</a>
+      </section>
 
-    <section class="card">
-      <h3>Ghi chú</h3>
-      <ul>
-        <li>Ứng dụng chạy trên mọi thiết bị (điện thoại, máy tính, iOS/Android).</li>
-        <li>Nhấn ⋮ (Chrome) &gt; <em>Thêm vào Màn hình chính</em> để cài như ứng dụng.</li>
-      </ul>
-    </section>
+      <section class="card">
+        <h3>Tài liệu học tập</h3>
+        <p>PDF từ Word/PowerPoint đã xuất, lưu trên Google Drive.</p>
+        <a class="btn" href="materials.html">Mở tài liệu</a>
+      </section>
 
-    <!-- (TÙY CHỌN) Nút test nhanh việc nạp câu hỏi từ Sheet mẫu -->
-    <section class="card">
-      <h3>Kiểm tra nhanh dữ liệu câu hỏi (Sheet mẫu)</h3>
-      <button class="btn" id="btn-test-load">Tải & xem tổng số câu</button>
-      <div id="test-out" style="margin-top:8px;font-size:14px;color:#333"></div>
-    </section>
+      <section class="card">
+        <h3>Tra cứu kết quả</h3>
+        <p>Mở Google Sheets: Tổng hợp và Chi tiết theo Mã đề.</p>
+        <!-- Thay bằng link Sheets của anh -->
+        <a class="btn" href="#" target="_blank" rel="noopener">Mở bảng điểm</a>
+      </section>
+    </div>
   </main>
 
-  <footer class="footer">© Đơn vị: Ban Chỉ huy PTKV3 - Tân Yên</footer>
-
-  <script>
-    // Nút test: hiển thị nhanh số câu đã nạp từ Sheet mẫu/Google Sheets
-    document.getElementById('btn-test-load')?.addEventListener('click', async () => {
-      const list = await (window.QUESTIONS_DATA_PROMISE || window.loadQuestionsFromSheet());
-      document.getElementById('test-out').textContent =
-        `Đã nạp ${list.length} câu hỏi. Câu 1: ${list[0]?.question || '—'}`;
-    });
-  </script>
+  <footer>© Đơn vị — CTĐ, CTCT</footer>
 </body>
 </html>
