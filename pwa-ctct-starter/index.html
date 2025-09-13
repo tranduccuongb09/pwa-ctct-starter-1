@@ -14,7 +14,99 @@
       });
     }
   </script>
+
+  <!-- ====== CTCT ADAPTER: NẠP CÂU HỎI TỪ GOOGLE SHEETS (CSV) ====== -->
+  <script>
+  /** ========== CẤU HÌNH ========== **/
+  // 1) Dùng Sheet mẫu (chạy offline luôn): data: URL CSV (có 6 câu ví dụ)
+  const SAMPLE_CSV_DATA_URL =
+    "data:text/csv;charset=utf-8," + encodeURIComponent(
+`Câu hỏi,Đáp án A,Đáp án B,Đáp án C,Đáp án D,Đáp án đúng
+"Chức năng cơ bản của CTĐ, CTCT trong QĐNDVN là gì?","Giáo dục chính trị, tư tưởng","Công tác dân vận","Huấn luyện kỹ thuật","Hậu cần - kỹ thuật","A"
+"Nguyên tắc tổ chức cơ bản của QĐNDVN là gì?","Tập trung dân chủ","Tam quyền phân lập","Tập quyền tuyệt đối","Phân tán tự trị","A"
+"Yêu cầu về kỷ luật của quân đội?","Kỷ luật nghiêm minh","Khoan dung, linh hoạt","Tự do, sáng tạo","Tuỳ nghi, linh hoạt","A"
+"Nền tảng tư tưởng, kim chỉ nam của ĐCSVN là?","Chủ nghĩa Mác - Lênin, Tư tưởng Hồ Chí Minh","Tư tưởng Khổng - Mạnh","Chủ nghĩa tự do","Chủ nghĩa dân túy","A"
+"Đối tượng giáo dục CTĐ, CTCT chủ yếu trong đơn vị là?","Cán bộ, chiến sĩ trong đơn vị","Nhân dân địa phương","Doanh nghiệp trên địa bàn","Học sinh phổ thông","A"
+"Nguyên tắc công tác tư tưởng là?","Tính đảng, tính khoa học, tính chiến đấu","Trung lập, mềm dẻo","Tự phát, linh hoạt","Chủ quan, cảm tính","A"
+`);
+
+  // 2) Khi có Google Sheets thật: THAY DÒNG DƯỚI BẰNG LINK CSV PUBLISH
+  window.CTCT_CONFIG = {
+    // Ví dụ định dạng đúng:
+    // questionCsvUrl: "https://docs.google.com/spreadsheets/d/e/<ID>/pub?output=csv"
+    questionCsvUrl: SAMPLE_CSV_DATA_URL
+  };
+
+  /** ========== ADAPTER: CSV → DANH SÁCH CÂU HỎI ========== **/
+  (function () {
+    function parseCSV(text){
+      const rows=[]; let cur=''; let inQ=false; let row=[];
+      for(let i=0;i<text.length;i++){
+        const ch=text[i], next=text[i+1];
+        if(ch==='\"'){ if(inQ && next==='\"'){cur+='\"'; i++;} else inQ=!inQ; }
+        else if(ch===',' && !inQ){ row.push(cur); cur=''; }
+        else if((ch==='\n'||ch==='\r') && !inQ){ if(cur!==''||row.length){row.push(cur); rows.push(row); row=[]; cur='';} }
+        else { cur+=ch; }
+      }
+      if(cur!==''||row.length){row.push(cur); rows.push(row);}
+      return rows.filter(r=>r.some(c=>c.trim()!==''));
+    }
+
+    function rowsToQuestions(rows){
+      const header = rows[0].map(h=>h.trim().toLowerCase());
+      const idx = {
+        q: header.findIndex(h=>/câu\s*hỏi|question/.test(h)),
+        a: header.findIndex(h=>/đáp\s*án\s*a\b|^a$/.test(h)),
+        b: header.findIndex(h=>/đáp\s*án\s*b\b|^b$/.test(h)),
+        c: header.findIndex(h=>/đáp\s*án\s*c\b|^c$/.test(h)),
+        d: header.findIndex(h=>/đáp\s*án\s*d\b|^d$/.test(h)),
+        correct: header.findIndex(h=>/đáp\s*án\s*đúng|correct|key/.test(h)),
+      };
+      const list=[];
+      for(let i=1;i<rows.length;i++){
+        const r=rows[i];
+        const q={
+          question: (r[idx.q]||'').trim(),
+          options: {
+            A: (r[idx.a]||'').trim(),
+            B: (r[idx.b]||'').trim(),
+            C: (r[idx.c]||'').trim(),
+            D: (r[idx.d]||'').trim(),
+          },
+          answer: ((r[idx.correct]||'').trim().toUpperCase().match(/[ABCD]/)||['A'])[0]
+        };
+        if(q.question) list.push(q);
+      }
+      return list;
+    }
+
+    async function loadQuestionsFromSheet(){
+      const url = window.CTCT_CONFIG?.questionCsvUrl;
+      if(!url) throw new Error("Thiếu CTCT_CONFIG.questionCsvUrl");
+      const res = await fetch(url, {cache:"no-store"});
+      if(!res.ok) throw new Error("Không tải được CSV từ Google Sheets");
+      const text = await res.text();
+      const rows = parseCSV(text);
+      return rowsToQuestions(rows);
+    }
+
+    // Xuất global để trang/bộ phận khác dùng
+    window.loadQuestionsFromSheet = loadQuestionsFromSheet;
+
+    // Tải sớm để dùng ngay (ví dụ cho quiz.html)
+    window.QUESTIONS_DATA_PROMISE = loadQuestionsFromSheet().then(list => {
+      window.QUESTIONS_DATA = list;
+      return list;
+    }).catch(err => {
+      console.error("[CTCT] Lỗi nạp câu hỏi:", err);
+      window.QUESTIONS_DATA = [];
+      return [];
+    });
+  })();
+  </script>
+  <!-- ====== /CTCT ADAPTER ====== -->
 </head>
+
 <body>
   <header class="hero">
     <div class="brand">
@@ -43,8 +135,24 @@
         <li>Nhấn ⋮ (Chrome) &gt; <em>Thêm vào Màn hình chính</em> để cài như ứng dụng.</li>
       </ul>
     </section>
+
+    <!-- (TÙY CHỌN) Nút test nhanh việc nạp câu hỏi từ Sheet mẫu -->
+    <section class="card">
+      <h3>Kiểm tra nhanh dữ liệu câu hỏi (Sheet mẫu)</h3>
+      <button class="btn" id="btn-test-load">Tải & xem tổng số câu</button>
+      <div id="test-out" style="margin-top:8px;font-size:14px;color:#333"></div>
+    </section>
   </main>
 
   <footer class="footer">© Đơn vị: Ban Chỉ huy PTKV3 - Tân Yên</footer>
+
+  <script>
+    // Nút test: hiển thị nhanh số câu đã nạp từ Sheet mẫu/Google Sheets
+    document.getElementById('btn-test-load')?.addEventListener('click', async () => {
+      const list = await (window.QUESTIONS_DATA_PROMISE || window.loadQuestionsFromSheet());
+      document.getElementById('test-out').textContent =
+        `Đã nạp ${list.length} câu hỏi. Câu 1: ${list[0]?.question || '—'}`;
+    });
+  </script>
 </body>
 </html>
